@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Hostel Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f7f6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: linear-gradient(180deg, #4facfe, #00f2fe);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding-top: 20px;
+      position: fixed;
+      height: 100%;
+      transition: 0.3s;
+    }
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 22px;
+    }
+    .sidebar a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 15px 20px;
+      margin: 5px 10px;
+      border-radius: 8px;
+      transition: 0.3s;
+      font-weight: 500;
+    }
+    .sidebar a:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Main content */
+    .main-content {
+      margin-left: 220px;
+      padding: 30px;
+      flex: 1;
+    }
+    .main-content h1 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .main-content p {
+      margin-bottom: 30px;
+      color: #555;
+    }
+
+    /* Dashboard cards */
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+    }
+    .card h3 {
+      margin-bottom: 10px;
+      color: #4facfe;
+    }
+    .card p {
+      color: #555;
+      font-size: 14px;
+    }
+
+    /* Logout button */
+    .logout-btn {
+      margin-top: auto;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.2);
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>SmartHostel</h2>
+    <a href="admission.html">Admission</a>
+    <a href="room.html">Room</a>
+    <a href="attendance.html">Attendance</a>
+    <a href="mess.html">Mess</a>
+    <a href="grievance.html">Grievance</a>
+    <a href="permission.html">Permission</a>
+    <a href="#" class="logout-btn" onclick="logout()">Logout</a>
+  </div>
+
+  <div class="main-content">
+    <h1>Welcome to Hostel Dashboard</h1>
+    <p>Select a module below to manage hostel activities efficiently.</p>
+
+    <div class="card-container">
+      <div class="card" onclick="location.href='admission.html'">
+        <h3>Admission</h3>
+        <p>Manage student hostel admissions efficiently.</p>
+      </div>
+      <div class="card" onclick="location.href='room.html'">
+        <h3>Room</h3>
+        <p>View and edit room details and availability.</p>
+      </div>
+      <div class="card" onclick="location.href='attendance.html'">
+        <h3>Attendance</h3>
+        <p>Record student attendance and mess cuts.</p>
+      </div>
+      <div class="card" onclick="location.href='mess.html'">
+        <h3>Mess</h3>
+        <p>Manage mess menu, payments, and preferences.</p>
+      </div>
+      <div class="card" onclick="location.href='grievance.html'">
+        <h3>Grievance</h3>
+        <p>Handle student complaints and feedback.</p>
+      </div>
+      <div class="card" onclick="location.href='permission.html'">
+        <h3>Permission</h3>
+        <p>Approve student outings and events.</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth } from "./js/firebase.js";
+    import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    // Ensure user is logged in
+    onAuthStateChanged(auth, (user) => {
+      if (!user) window.location = "index.html";
+    });
+
+    window.logout = () => {
+      signOut(auth).then(() => window.location = "index.html");
+    };
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admission Details - Hostel Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family: 'Poppins', sans-serif; background: #f4f7f6; display:flex; min-height:100vh; }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: linear-gradient(180deg, #4facfe, #00f2fe);
+      color: white;
+      display:flex;
+      flex-direction: column;
+      padding-top: 20px;
+      position: fixed;
+      height: 100%;
+    }
+    .sidebar h2 { text-align:center; margin-bottom:30px; font-size:22px; }
+    .sidebar a {
+      display:block;
+      color:white;
+      text-decoration:none;
+      padding:15px 20px;
+      margin:5px 10px;
+      border-radius:8px;
+      transition:0.3s;
+      font-weight:500;
+    }
+    .sidebar a:hover { background: rgba(255,255,255,0.2); }
+
+    /* Main content */
+    .main-content {
+      margin-left: 220px;
+      padding:30px;
+      flex:1;
+    }
+    h1 { color:#333; margin-bottom:20px; }
+    
+    /* Cards */
+    .card {
+      background:white;
+      border-radius:15px;
+      padding:30px;
+      margin-bottom:30px;
+      box-shadow:0 10px 20px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover { transform: translateY(-5px); box-shadow:0 15px 25px rgba(0,0,0,0.2); }
+    h3 { color:#4facfe; margin-bottom:15px; }
+
+    /* Form */
+    form input, form select, form button {
+      width:100%;
+      padding:12px;
+      margin-bottom:15px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      font-size:14px;
+    }
+    form button {
+      background:#4facfe;
+      color:white;
+      border:none;
+      cursor:pointer;
+      transition:0.3s;
+    }
+    form button:hover { background:#00f2fe; }
+
+    /* Admission list */
+    ul { list-style:none; padding-left:0; }
+    li {
+      background:#f0f0f0;
+      padding:12px 15px;
+      margin-bottom:10px;
+      border-radius:8px;
+      font-weight:500;
+      color:#333;
+    }
+
+    @media(max-width:600px){
+      .main-content { padding:15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>SmartHostel</h2>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="room.html">Room</a>
+    <a href="attendance.html">Attendance</a>
+    <a href="mess.html">Mess</a>
+    <a href="grievance.html">Grievance</a>
+    <a href="permission.html">Permission</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1>Admission Details</h1>
+
+    <!-- Admission Form Card -->
+    <div class="card">
+      <h3>Admission Form</h3>
+      <form id="admission-form">
+        <input type="text" id="name" placeholder="Full Name" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="text" id="department" placeholder="Department" required>
+        <input type="number" id="year" placeholder="Academic Year" required>
+        <select id="priority" required>
+          <option value="">Select Priority</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+        <button type="submit">Submit Admission</button>
+      </form>
+    </div>
+
+    <!-- Admission Records Card -->
+    <div class="card">
+      <h3>Admission Records</h3>
+      <ul id="admission-list">Loading records...</ul>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBwQoM_UsvVxpkQcBUDvInTJE3SAl6GNNQ",
+      authDomain: "autodorm-c49a7.firebaseapp.com",
+      projectId: "autodorm-c49a7",
+      storageBucket: "autodorm-c49a7.firebasestorage.app",
+      messagingSenderId: "789459387294",
+      appId: "1:789459387294:web:5763a841fbe06373948c8f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Ensure user is logged in
+    onAuthStateChanged(auth, (user) => {
+      if (!user) window.location.href = "index.html";
+    });
+
+    window.logout = () => {
+      signOut(auth).then(()=>window.location.href="index.html");
+    };
+
+    const admissionForm = document.getElementById("admission-form");
+    const admissionList = document.getElementById("admission-list");
+    const admissionRef = collection(db, "admissions");
+
+    // Submit Admission
+    admissionForm.addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const department = document.getElementById("department").value.trim();
+      const year = document.getElementById("year").value.trim();
+      const priority = document.getElementById("priority").value;
+
+      if(!name || !email || !department || !year || !priority){
+        alert("Please fill all fields!");
+        return;
+      }
+
+      try {
+        await addDoc(admissionRef, { name, email, department, year, priority, status: "Pending" });
+        alert("Admission submitted!");
+        admissionForm.reset();
+        loadAdmissions();
+      } catch (err){
+        console.error(err);
+        alert("Error submitting admission: "+err.message);
+      }
+    });
+
+    // Load Admissions
+    async function loadAdmissions(){
+      admissionList.innerHTML = "";
+      const snapshot = await getDocs(admissionRef);
+      if(snapshot.empty){
+        admissionList.innerHTML = "<li>No admissions yet.</li>";
+      } else {
+        snapshot.forEach(doc=>{
+          const data = doc.data();
+          const li = document.createElement("li");
+          li.textContent = `${data.name} - ${data.department} - Year: ${data.year} - Priority: ${data.priority}`;
+          admissionList.appendChild(li);
+        });
+      }
+    }
+
+    loadAdmissions();
+  </script>
+
+</body>
+</html>

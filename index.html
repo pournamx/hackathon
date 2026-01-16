@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartHostel | Login & Registration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #4facfe;
+      margin-bottom: 15px;
+    }
+
+    p {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-bottom: 10px;
+    }
+
+    #login-btn {
+      background: #4facfe;
+      color: white;
+    }
+
+    #login-btn:hover {
+      background: #00f2fe;
+    }
+
+    #register-btn {
+      background: white;
+      border: 2px solid #4facfe;
+      color: #4facfe;
+    }
+
+    #register-btn:hover {
+      background: #4facfe;
+      color: white;
+    }
+
+    .toggle-text {
+      font-size: 14px;
+      color: #555;
+      cursor: pointer;
+    }
+
+    .toggle-text span {
+      color: #4facfe;
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background: white;
+  appearance: none; /* remove default arrow for consistent look */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  color: #555;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="login-form">
+      <h2>Hostel Login</h2>
+      <p>Welcome back! Please enter your details.</p>
+      <input type="email" id="loginEmail" placeholder="Email Address" required>
+      <input type="password" id="loginPassword" placeholder="Password" required>
+      <button id="login-btn">Login</button>
+      <p class="toggle-text">Don't have an account? <span onclick="showRegister()">Register here</span></p>
+    </div>
+
+    <div id="register-form" class="hidden">
+      <h2>Register Account</h2>
+      <p>Create a new account to access the hostel system.</p>
+      <input type="text" id="regName" placeholder="Full Name" required>
+      <input type="email" id="regEmail" placeholder="Email Address" required>
+      <input type="password" id="regPassword" placeholder="Password" required>
+      <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
+      <select id="regRole">
+        <option value="">Select Role</option>
+        <option value="student">Student</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button id="register-btn">Register</button>
+      <p class="toggle-text">Already have an account? <span onclick="showLogin()">Login here</span></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBwQoM_UsvVxpkQcBUDvInTJE3SAl6GNNQ",
+      authDomain: "autodorm-c49a7.firebaseapp.com",
+      projectId: "autodorm-c49a7",
+      storageBucket: "autodorm-c49a7.firebasestorage.app",
+      messagingSenderId: "789459387294",
+      appId: "1:789459387294:web:5763a841fbe06373948c8f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
+
+    function showRegister(){
+      loginForm.classList.add("hidden");
+      registerForm.classList.remove("hidden");
+    }
+
+    function showLogin(){
+      registerForm.classList.add("hidden");
+      loginForm.classList.remove("hidden");
+    }
+
+    // Login
+    document.getElementById("login-btn").addEventListener("click", async () => {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      if(!email || !password){
+        alert("Please fill all fields!");
+        return;
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Login successful!");
+        window.location.href = "dashboard.html";
+      } catch(err){
+        console.error(err);
+        alert("Login failed: " + err.message);
+      }
+    });
+
+    // Registration
+    document.getElementById("register-btn").addEventListener("click", async () => {
+      const name = document.getElementById("regName").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const confirmPassword = document.getElementById("regConfirmPassword").value;
+      const role = document.getElementById("regRole").value;
+
+      if(!name || !email || !password || !confirmPassword || !role){
+        alert("Please fill all fields!");
+        return;
+      }
+
+      if(password !== confirmPassword){
+        alert("Passwords do not match!");
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await updateProfile(user, { displayName: name });
+        await setDoc(doc(db, "users", user.uid), { name, email, role });
+
+        alert("Registration successful! Redirecting to dashboard...");
+        window.location.href = "dashboard.html";
+      } catch(err){
+        console.error(err);
+        alert("Registration failed: " + err.message);
+      }
+    });
+
+    // Optional: redirect if already logged in
+    onAuthStateChanged(auth, user => {
+      if(user){
+        window.location.href = "dashboard.html";
+      }
+    });
+
+    window.showRegister = showRegister;
+    window.showLogin = showLogin;
+  </script>
+
+</body>
+</html>

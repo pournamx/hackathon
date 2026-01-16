@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Management - Hostel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background: #f4f7f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .main-content {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+    }
+
+    h3 {
+      color: #4facfe;
+      margin-bottom: 15px;
+    }
+
+    form input, form button {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    form button {
+      background: #4facfe;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    form button:hover {
+      background: #00f2fe;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      background: #f0f0f0;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    @media(max-width: 600px){
+      .main-content { padding: 10px; }
+      form input, form button { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-content">
+    <div class="card">
+      <h3>Room Management</h3>
+      <form id="room-form">
+        <input type="text" id="room-number" placeholder="Room Number" required>
+        <input type="number" id="beds" placeholder="Number of Beds" required>
+        <input type="text" id="facilities" placeholder="Facilities (e.g., Attached Bath)" required>
+        <button type="submit">Add Room</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Room Records</h3>
+      <ul id="room-list">Loading rooms...</ul>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // ----------------------
+    // Firebase Config
+    // ----------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyBwQoM_UsvVxpkQcBUDvInTJE3SAl6GNNQ",
+      authDomain: "autodorm-c49a7.firebaseapp.com",
+      projectId: "autodorm-c49a7",
+      storageBucket: "autodorm-c49a7.firebasestorage.app",
+      messagingSenderId: "789459387294",
+      appId: "1:789459387294:web:5763a841fbe06373948c8f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ----------------------
+    // Auth check
+    // ----------------------
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        alert("Please login first!");
+        window.location.href = "index.html";
+      }
+    });
+
+    window.logout = () => { signOut(auth).then(()=>window.location="index.html"); };
+
+    // ----------------------
+    // Firestore References
+    // ----------------------
+    const roomForm = document.getElementById("room-form");
+    const roomList = document.getElementById("room-list");
+    const roomRef = collection(db, "rooms");
+
+    // ----------------------
+    // Add Room
+    // ----------------------
+    roomForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      const number = document.getElementById("room-number").value.trim();
+      const beds = document.getElementById("beds").value.trim();
+      const facilities = document.getElementById("facilities").value.trim();
+
+      if(!number || !beds || !facilities){
+        alert("Please fill all fields!");
+        return;
+      }
+
+      try {
+        await addDoc(roomRef, { number, beds, facilities });
+        alert("Room added successfully!");
+        roomForm.reset();
+        loadRooms();
+      } catch (err) {
+        console.error(err);
+        alert("Error adding room: " + err.message);
+      }
+    });
+
+    // ----------------------
+    // Load Rooms
+    // ----------------------
+    async function loadRooms(){
+      roomList.innerHTML = "";
+      const snapshot = await getDocs(roomRef);
+      if(snapshot.empty){
+        roomList.innerHTML = "<li>No rooms added yet.</li>";
+      } else {
+        snapshot.forEach(doc=>{
+          const li = document.createElement("li");
+          li.textContent = `Room ${doc.data().number} - Beds: ${doc.data().beds} - Facilities: ${doc.data().facilities}`;
+          roomList.appendChild(li);
+        });
+      }
+    }
+
+    // Initial load
+    loadRooms();
+  </script>
+
+</body>
+</html>
